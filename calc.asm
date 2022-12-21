@@ -52,7 +52,7 @@ getChar MACRO ;macro para leer un char desde el teclado
 ENDM
 
 saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
-    LOCAL LNEGATIVO, LCAPTURAR, RESTA, SALIR
+    LOCAL LNEGATIVO, LCAPTURAR, RESTA, SALIR, LERROR
     mov ax, @data
     mov ds, ax
     ; imprimimos el coeficiente de quien se quiere
@@ -67,21 +67,33 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     jmp LCAPTURAR
 
     LNEGATIVO:
+        ; manejaremos la virable negativo como 0 = es positivo, 1 = es negativo
+        mov al, negativo
+        add al, 1
+        mov negativo, al
         ; capturamos el primer dígito del número (la unidad)
         mov ah, 01h
         int 21h
-        ; manejaremos la virable negativo como 0 = es positivo, 1 = es negativo
-        mov al, negativo
-        sub al, 1
-        mov negativo, al
         jmp LCAPTURAR
 
     LCAPTURAR:
+        ; vamos a verificar que se trate de un número
+        cmp al, '0'
+        jl LERROR ; si no es un número salta a la etiqueta de error
+        cmp al, '9'
+        jg LERROR ; si no es un número salta a la etiqueta de error
+
         sub al, 30h ; hacemos un ajuste al registro al
         mov d, al
         ; capturamos el segundo dígito del número (la decena)
         mov ah, 01h
         int 21h
+        ; vamos a verificar que se trate de un número
+        cmp al, '0'
+        jl LERROR ; si no es un número salta a la etiqueta de error
+        cmp al, '9'
+        jg LERROR ; si no es un número salta a la etiqueta de error
+
         sub al, 30h ; hacemos un ajuste al registro al
         mov u, al
         ; ahora multiplicamos las decenas * 10 
@@ -103,7 +115,19 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
         mov al, var
         neg al  ; aquí obtenemos el número negativo
         mov var, al
+        ; volvemos a poner a negativo en 0
+        mov al, negativo
+        sub al, 1
+        mov negativo, al 
+        printLinea ln, 0d
         jmp SALIR
+
+    LERROR:
+        ; aquí imprimimos el error, que no se ha ingresado un número
+        clearPantalla
+        printLinea ln, 0d
+        printLinea msgError, 5d
+        jmp MENU
 
     SALIR:
 
@@ -119,6 +143,10 @@ getCoeficiente MACRO var, xn ; macro para obtener los números guardados de la f
 
     NEGATIVO:
         printLinea menos, 7d
+        ; negamos los negativos para poder mostrarlos en
+        mov al, var
+        neg al
+        mov var, al
         jmp MOSTRAR
 
     POSITIVO:
@@ -139,6 +167,8 @@ getCoeficiente MACRO var, xn ; macro para obtener los números guardados de la f
         mov dl, bl 
         add dl, 30h ; aquí convertimos el dígito de las unidades en ascii 
         int 21h
+
+
         ; comparamos si la x^n es diferente de x^0, ya que esta solo se motrará el número
         mov al, xn
         cmp al, '-'
@@ -384,6 +414,7 @@ ENDM
 
     outro       db "Presione la tecla r para regresar.", "$"
 
+    msgError    db "ERROR. Se esperaba que ingrese un error, por favor intente de nuevo.", "$"
     enProceso   db "Estamos en proceso de construccion :D", "$"
 
     u           db 0 ; unidad del número
@@ -409,7 +440,7 @@ ENDM
     sx4          db 0 ; coeficiente para x^3
     sx3          db 0 ; coeficiente para x^2
     sx2          db 0 ; coeficiente para x^1
-    sx1         db 0 ; coeficiente para x^0
+    sx1          db 0 ; coeficiente para x^0
 
 .code ; segmento de código
     main PROC ; proceso main
@@ -444,8 +475,17 @@ ENDM
     TRES: ; nos vamos a la opcion tres
         opcion3
     
-    CUATRO: ; nos vamos a la opcion tres
+    CUATRO: ; nos vamos a la opcion cuatro
         opcion4
+    
+    CINCO: ; nos vamos a la opcion cinco
+        printLinea enProceso, 10d
+
+    SEIS: ; nos vamos a la opcion seis
+        printLinea enProceso, 10d
+
+    SIETE: ; nos vamos a la opcion siete
+        printLinea enProceso, 10d
     
     SALIDA: ; salimos del programa
         .exit

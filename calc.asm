@@ -134,19 +134,23 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
 ENDM
 
 getCoeficiente MACRO var, xn ; macro para obtener los números guardados de la función
-    LOCAL MOSTRAR, POSITIVO, NEGATIVO, PONERX, SALIDA
+    LOCAL MOSTRAR, POSITIVO, LNEGATIVO, PONERX, NEGAR, SALIDA
     mov al, var
     cmp al, 0
     jg POSITIVO
-    jl NEGATIVO
+    jl LNEGATIVO
     jmp SALIDA
 
-    NEGATIVO:
+    LNEGATIVO:
         printLinea menos, 7d
-        ; negamos los negativos para poder mostrarlos en
+        ; negamos los negativos para poder mostrarlos en pantalla
         mov al, var
         neg al
         mov var, al
+        ; y ponemos negativo en 1, para saber que son negativos y volverlos negar despues
+        mov al, negativo
+        add al, 1
+        mov negativo, al 
         jmp MOSTRAR
 
     POSITIVO:
@@ -167,8 +171,10 @@ getCoeficiente MACRO var, xn ; macro para obtener los números guardados de la f
         mov dl, bl 
         add dl, 30h ; aquí convertimos el dígito de las unidades en ascii 
         int 21h
-
-
+        ; verificamos si es un negativo, para devolverle su signo
+        mov al, negativo
+        cmp al, 1
+        je NEGAR
         ; comparamos si la x^n es diferente de x^0, ya que esta solo se motrará el número
         mov al, xn
         cmp al, '-'
@@ -177,6 +183,22 @@ getCoeficiente MACRO var, xn ; macro para obtener los números guardados de la f
     
     PONERX: ; imprimimos x^n
         printLinea xn, 7d
+        jmp SALIDA
+
+    NEGAR:
+        ; negamos otra vez el var para guardarlo con su signo
+        mov al, var
+        neg al
+        mov var, al
+        ; y ponemos negativo en 1, para saber que son negativos y volverlos negar despues
+        mov al, negativo
+        sub al, 1
+        mov negativo, al 
+        ; comparamos si la x^n es diferente de x^0, ya que esta solo se motrará el número
+        mov al, xn
+        cmp al, '-'
+        jnz PONERX
+        jmp SALIDA
 
     SALIDA:
 ENDM
@@ -282,33 +304,73 @@ opcion3 MACRO ; macro para mostrar la derivada de la función
 ENDM
 
 getIntegral MACRO var, xn, svar ; macro para obtener la integral
-    LOCAL EXP6, EXP5, EXP4, EXP3, EXP2, EXP1, SALIDA
-    ; var = número a dividir, xn = número divisor + 1
-    ; primero realizamos la suma del exponente
-    mov al, xn
-    add al, 1
-    mov xn, al 
-    ; realizamos la division
-    xor ax, ax ; limpiamos ax
-    mov bl, xn
+    LOCAL LOG, LOG2, EXP6, EXP5, EXP4, EXP3, EXP2, EXP1, NEGAR, NEGAR2, SALIDA
+    ; revisamos si se trata de un número negativo, para pasarlo a positivo para divir
     mov al, var
-    div bl 
-    mov svar, al 
-    ; comparamos para saber que x^n le toca
-    mov al, xn
-    cmp al, 6
-    je EXP6
-    cmp al, 5
-    je EXP5
-    cmp al, 4
-    je EXP4
-    cmp al, 3
-    je EXP3
-    cmp al, 2
-    je EXP2
-    cmp al, 1
-    je EXP1
-    jmp SALIDA
+    cmp al, 0
+    jl NEGAR
+    jmp LOG
+
+    NEGAR:
+        ; ponemos en 1 el negativo para saber que es un número negativo 
+        mov al, negativo 
+        add al, 1
+        mov negativo, al 
+        ; negamos el número para tener su positivo 
+        mov al, var 
+        neg al 
+        mov var, al
+        jmp LOG 
+    
+    NEGAR2:
+        ; ponemos en 1 el negativo para saber que es un número negativo 
+        mov al, negativo 
+        sub al, 1
+        mov negativo, al 
+        ; negamos el número para tener su positivo 
+        mov al, var 
+        neg al 
+        mov var, al
+        ; negamos el número para tener su positivo 
+        mov al, svar 
+        neg al 
+        mov svar, al
+        jmp LOG2
+
+    LOG:
+        ; var = número a dividir, xn = número divisor + 1
+        ; primero realizamos la suma del exponente
+        mov al, xn
+        add al, 1
+        mov xn, al 
+        ; realizamos la division
+        xor ah, ah ; limpiamos ax
+        mov bl, xn
+        mov al, var
+        div bl 
+        mov svar, al 
+        ; verificamos si es un número negativo para devolver su signo 
+        mov al, negativo 
+        cmp al, 1 
+        je NEGAR2
+        jmp LOG2
+
+    LOG2:
+        ; comparamos para saber que x^n le toca
+        mov al, xn
+        cmp al, 6
+        je EXP6
+        cmp al, 5
+        je EXP5
+        cmp al, 4
+        je EXP4
+        cmp al, 3
+        je EXP3
+        cmp al, 2
+        je EXP2
+        cmp al, 1
+        je EXP1
+        jmp SALIDA
     ; mostramos el coeficiente correspondiente
     EXP6:
         getCoeficiente svar, op1x6
@@ -479,13 +541,22 @@ ENDM
         opcion4
     
     CINCO: ; nos vamos a la opcion cinco
+        clearPantalla
+        printLinea ln, 0d
         printLinea enProceso, 10d
+        jmp MENU
 
     SEIS: ; nos vamos a la opcion seis
+        clearPantalla
+        printLinea ln, 0d
         printLinea enProceso, 10d
+        jmp MENU
 
     SIETE: ; nos vamos a la opcion siete
+        clearPantalla
+        printLinea ln, 0d
         printLinea enProceso, 10d
+        jmp MENU
     
     SALIDA: ; salimos del programa
         .exit

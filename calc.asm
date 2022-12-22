@@ -52,7 +52,7 @@ getChar MACRO ;macro para leer un char desde el teclado
 ENDM
 
 saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
-    LOCAL LNEGATIVO, LCAPTURAR, RESTA, SALIR, LERROR
+    LOCAL LNEGATIVO, LCAPTURAR, LPOSITIVO, RESTA, SALIR, LERROR
     mov ax, @data
     mov ds, ax
     ; imprimimos el coeficiente de quien se quiere
@@ -64,7 +64,16 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     ; primero miramos si se trata de un número negativo
     cmp al, '-'
     je LNEGATIVO
+    ; miramos si pone el signo positivo
+    cmp al, '+'
+    je LPOSITIVO
     jmp LCAPTURAR
+
+    LPOSITIVO:
+        ; capturamos el primer dígito del número (la unidad)
+        mov ah, 01h
+        int 21h
+        jmp LCAPTURAR
 
     LNEGATIVO:
         ; manejaremos la virable negativo como 0 = es positivo, 1 = es negativo
@@ -476,7 +485,7 @@ ENDM
 
     outro       db "Presione la tecla r para regresar.", "$"
 
-    msgError    db "ERROR. Se esperaba que ingrese un error, por favor intente de nuevo.", "$"
+    msgError    db "ERROR. Se esperaba que ingrese un número de 0 a 9, por favor intente de nuevo.", "$"
     enProceso   db "Estamos en proceso de construccion :D", "$"
 
     u           db 0 ; unidad del número

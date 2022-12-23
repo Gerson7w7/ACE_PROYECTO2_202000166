@@ -429,6 +429,52 @@ opcion4 MACRO ; macro para la función 4
     jmp MENU
 ENDM
 
+getParams MACRO ; parámetros para realizar los métodos numéricos
+    LOCAL LERROR
+    mov ax, @data
+    mov ds, ax
+    ; primero pediremos el númerom máximo de iteraciones
+    saveCoeficiente msgIteracionMax, iteracionMax
+    ; primero pediremos el coeficiente de tolerancia
+    saveCoeficiente msgCoefTolerancia, coefTolerancia
+    ; primero pediremos el grado de tolerancia
+    saveCoeficiente msgGradTolerancia, gradTolerancia
+    ; primero pediremos el límite superior
+    saveCoeficiente msgLimSuperior, limSuperior
+    ; primero pediremos el límite inferior
+    saveCoeficiente msgLimInferior, limInferior
+    ; ahora verificamos que el límite superior sea mayor al límite inferior
+    mov al, limSuperior
+    cmp al, limInferior
+    jl LERROR
+    jmp MENU
+
+    LERROR:
+        clearPantalla
+        printLinea limError, 5d
+        jmp MENU
+ENDM
+
+metodoNewton MACRO 
+    mov ax, @data
+    mov ds, ax
+    ; primero movemos el limInferior a la variable cero
+    mov al, limInferior
+    mov cero, al 
+
+ENDM
+
+opcion6 MACRO ; macro para la función 6
+    clearPantalla
+    printLinea ln, 0d
+    printLinea op6Intro, 10d
+    printLinea ln, 0d
+    ; obtenemos los parámetros
+    getParams
+    ; ahora procedemos con el método
+    jmp MENU
+ENDM
+
 .model small 
 .stack ; segmento de pila
 .data ; segmento de datos
@@ -479,13 +525,18 @@ ENDM
 
     graf3Intro  db "Funcion integral:", "$"
 
-    op6Intro    db "Ceros por metodo de Newton: ", "$"
-
-    op7Intro    db "Ceros por metodo de Steffensen: ", "$"
+    msgIteracionMax     db "Ingrese el numero de iteraciones maximo", "$"
+    msgCoefTolerancia   db "Ingrese el coeficiente de la tolerancia", "$"
+    msgGradTolerancia   db "Ingrese el grado de la tolerancia", "$"
+    msgLimSuperior      db "Ingrese el limite superior", "$"
+    msgLimInferior      db "Ingrese el limite inferior", "$"
+    limError            db "ERROR. El limite inferior deberia de ser mas pequenio que el limite superior.", "$"
+    op6Intro    db "================ Ceros por metodo de Newton ================", "$"
+    op7Intro    db "================ Ceros por metodo de Steffensen ================", "$"
 
     outro       db "Presione la tecla r para regresar.", "$"
 
-    msgError    db "ERROR. Se esperaba que ingrese un número de 0 a 9, por favor intente de nuevo.", "$"
+    msgError    db "ERROR. Se esperaba que ingrese un numero de 0 a 9, por favor intente de nuevo.", "$"
     enProceso   db "Estamos en proceso de construccion :D", "$"
 
     u           db 0 ; unidad del número
@@ -512,6 +563,14 @@ ENDM
     sx3          db 0 ; coeficiente para x^2
     sx2          db 0 ; coeficiente para x^1
     sx1          db 0 ; coeficiente para x^0
+    ; params método numérico
+    iteracionMax    db 0 ; iteraciones máxima
+    coefTolerancia  db 0 ; Coeficiente -> 5x10^-3
+    gradTolerancia  db 0 ; 5x10^-3 <- grado
+    limSuperior     db 0 ; límite superior
+    limInferior     db 0 ; límite inferior
+    cero            db 0 ; solución por los métodos 
+    errorIt         db 0 ; error de la iteracion
 
 .code ; segmento de código
     main PROC ; proceso main
@@ -556,10 +615,7 @@ ENDM
         jmp MENU
 
     SEIS: ; nos vamos a la opcion seis
-        clearPantalla
-        printLinea ln, 0d
-        printLinea enProceso, 10d
-        jmp MENU
+        opcion6
 
     SIETE: ; nos vamos a la opcion siete
         clearPantalla

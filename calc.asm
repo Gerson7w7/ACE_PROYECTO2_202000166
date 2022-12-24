@@ -430,7 +430,7 @@ opcion4 MACRO ; macro para la función 4
 ENDM
 
 getParams MACRO ; parámetros para realizar los métodos numéricos
-    LOCAL LERROR
+    LOCAL LERROR, SALIDA
     mov ax, @data
     mov ds, ax
     ; primero pediremos el númerom máximo de iteraciones
@@ -447,24 +447,105 @@ getParams MACRO ; parámetros para realizar los métodos numéricos
     mov al, limSuperior
     cmp al, limInferior
     jl LERROR
-    jmp MENU
+    jmp SALIDA
 
     LERROR:
         clearPantalla
         printLinea limError, 5d
-        jmp MENU
+        jmp SALIDA
+
+    SALIDA:
+ENDM
+
+potenciaM MACRO base, exp ; macro para realizar las potencias de las funciones
+    LOCAL CICLO
+    mov al, base 
+    mov potencia, al 
+    ; creamos un ciclo para representar la potencia
+    CICLO:
+        ; aquí realizamos la multiplicacion y la guardamos en la variable potencia
+        mov al, potencia
+        mov bl, base
+        mul bl
+        mov potencia, al
+        ; restamos en 1 al exp 
+        mov al, exp 
+        sub al, 1 
+        mov exp, al
+        ; si llega a 0 el exponente, salimos del loop
+        mov al, exp 
+        cmp al, 0
+        jg CICLO
+ENDM
+
+fxn MACRO exp, xn ; macro para calcular la funcion f(x)
+    ; Cnx^n
+    potenciaM limInferior, exp ; aquí caculamos x^n
+    mov al, xn 
+    mov bl, potencia 
+    imul bl ; aquí multiplicamos el coeficiente por el x correspondient
+    add al, valFn
+    mov valFn, al
+ENDM
+
+dfxn MACRO exp, xn ; macro para calcular la funcion f'(x)
+    ; Cnx^n
+    potenciaM limInferior, exp ; aquí caculamos x^n
+    mov al, xn 
+    mov bl, potencia 
+    imul bl ; aquí multiplicamos el coeficiente por el x correspondient
+    add al, valDfn
+    mov valDfn, al
 ENDM
 
 metodoNewton MACRO 
-    mov ax, @data
-    mov ds, ax
-    ; primero movemos el limInferior a la variable cero
-    mov al, limInferior
-    mov cero, al 
+    ; obtenemos f(xn)
+    ; aquí efectuamos la op de C5x^5
+    mov multiplicador, 4
+    fxn multiplicador, x5
+    ; aquí efectuamos la op de C4x^4
+    mov multiplicador, 3
+    fxn multiplicador, x4
+    ; aquí efectuamos la op de C3x^3
+    mov multiplicador, 2
+    fxn multiplicador, x3
+    ; aquí efectuamos la op de C2x^2
+    mov multiplicador, 1
+    fxn multiplicador, x2
+    ; aquí efectuamos la op de C1x^1
+    mov multiplicador, 0
+    fxn multiplicador, x1
+    ; aquí ya solo sumamos el termino independiente
+    mov al, valFn
+    add al, x0
+    mov valFn, al 
+    ; obtenemos f'(xn)
+    ; aquí efectuamos la op de C4x^4
+    mov multiplicador, 3
+    dfxn multiplicador, dx4
+    ; aquí efectuamos la op de C3x^3
+    mov multiplicador, 2
+    dfxn multiplicador, dx3
+    ; aquí efectuamos la op de C2x^2
+    mov multiplicador, 1
+    dfxn multiplicador, dx2
+    ; aquí efectuamos la op de C1x^1
+    mov multiplicador, 0
+    dfxn multiplicador, dx1
+    ; aquí ya solo sumamos el termino independiente
+    mov al, valDfn
+    add al, dx0
+    mov valDfn, al 
 
+    getCoeficiente valFn, menos
+    printLinea ln, 0d
+    getCoeficiente valDfn, menos
 ENDM
 
 opcion6 MACRO ; macro para la función 6
+    mov valFn, 0
+    mov valDfn, 0
+    mov errorIt, 0
     clearPantalla
     printLinea ln, 0d
     printLinea op6Intro, 10d
@@ -472,6 +553,7 @@ opcion6 MACRO ; macro para la función 6
     ; obtenemos los parámetros
     getParams
     ; ahora procedemos con el método
+    metodoNewton
     jmp MENU
 ENDM
 
@@ -569,8 +651,12 @@ ENDM
     gradTolerancia  db 0 ; 5x10^-3 <- grado
     limSuperior     db 0 ; límite superior
     limInferior     db 0 ; límite inferior
-    cero            db 0 ; solución por los métodos 
-    errorIt         db 0 ; error de la iteracion
+    cero            dw 0 ; solución por los métodos 
+    divAux          dw 0 
+    potencia        db 0
+    valFn           db 0 ; valor de la funcion normal
+    valDfn          db 0 ; valor de la función derivada
+    errorIt         dw 0 ; error de la iteracion
 
 .code ; segmento de código
     main PROC ; proceso main

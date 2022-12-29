@@ -429,6 +429,246 @@ opcion4 MACRO ; macro para la función 4
     jmp MENU
 ENDM
 
+quinta MACRO const 
+    ; pintar un pixel (prueba)
+    mov cx, 290 ; x
+    mov dx, 0 ; y
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h
+        inc cx 
+        inc ymax, 
+        inc dx 
+        inc xmax 
+        cmp xmax, 640
+        jne HORIZONTAL
+
+    mov dx, 0
+    VERTICAL: 
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        mov cx, x ; renglon y
+        int 10h
+        inc dx 
+        inc ymax 
+        cmp ymax, 480
+        jne VERTICAL
+ENDM 
+
+graficando MACRO var ; aquí graficamos coeficiente por coeficiente 
+    LOCAL QUINTA, CUARTA, TERCERA, SEGUNDA, PRIMERA, SIN, SALIDA
+    ; RESETEAMOS CONTADORES 
+    mov xmax, 0 
+    mov ymax, 0
+    ; cambiamos color 
+    ; mov color, 20
+    ; vemos de que grado es
+    mov al, var 
+    cmp al, 5
+    je QUINTA
+    cmp al, 4
+    je CUARTA
+    cmp al, 3
+    je TERCERA
+    cmp al, 2
+    je SEGUNDA
+    cmp al, 1
+    je PRIMERA 
+    cmp al, 0
+    je SIN 
+
+    QUINTA: 
+        quinta x0
+        jmp SALIDA
+
+    CUARTA: 
+        cuarta x0
+        jmp SALIDA
+
+    TERCERA: 
+        tercera x0
+        jmp SALIDA
+    
+    SEGUNDA: 
+        segunda x0
+        jmp SALIDA
+
+    PRIMERA: 
+        primera x0
+        jmp SALIDA
+    
+    SIN:
+        sinCero x0
+        jmp SALIDA
+
+    SALIDA:
+    
+ENDM
+
+opGraph1 MACRO ; aqui graficamos la funcion normal
+    LOCAL GSEIS, GCINCO, GCUATRO, GTRES, GDOS, GUNO, GCERO, SALIDA
+    mov al, x5
+    cmp al, 0
+    jne GCINCO
+    mov al, x4
+    cmp al, 0
+    jne GCUATRO
+    mov al, x3
+    cmp al, 0
+    jne GTRES
+    mov al, x2
+    cmp al, 0
+    jne GDOS
+    mov al, x1
+    cmp al, 0
+    jne GUNO
+    mov al, x0
+    cmp al, 0
+    jne GCERO
+
+    GCINCO:
+        graficando x5
+        jmp SALIDA
+
+    GCUATRO:
+        graficando x4
+        jmp SALIDA
+
+    GTRES:
+        graficando x3
+        jmp SALIDA
+
+    GDOS:
+        graficando x2
+        jmp SALIDA
+
+    GUNO:
+        graficando x1
+        jmp SALIDA
+
+    GCERO:
+        graficando x0
+        jmp SALIDA
+
+    SALIDA:
+ENDM
+
+opGraph2 MACRO
+    modoGrafico
+ENDM
+
+opGraph3 MACRO
+    modoGrafico
+ENDM
+
+modoGrafico MACRO var
+    LOCAL HORIZONTAL, VERTICAL, GUNO, GDOS, GTRES, SALIDA
+    clearPantalla
+    ; RESETEAMOS CONTADORES 
+    mov xmax, 0 
+    mov ymax, 0
+    ; cambiamos a modo gráfico
+    mov ah, 00
+    mov al, 12h
+    int 10h ; interrupcion bios
+
+    ; pintar un pixel (prueba)
+    mov cx, 0 ; columna del pixel x
+    HORIZONTAL:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        mov dx, y ; renglon y
+        int 10h
+        inc cx 
+        inc xmax 
+        cmp xmax, 640
+        jne HORIZONTAL
+
+    mov dx, 0
+    VERTICAL: 
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        mov cx, x ; renglon y
+        int 10h
+        inc dx 
+        inc ymax 
+        cmp ymax, 480
+        jne VERTICAL
+
+    mov al, var 
+    cmp al, 1
+    je GUNO 
+    cmp al, 2
+    je GDOS
+    cmp al, 3
+    je GTRES 
+
+    GUNO:
+        opGraph1
+        jmp SALIDA
+
+    GDOS: 
+        jmp SALIDA
+
+    GTRES: 
+        jmp SALIDA
+
+    SALIDA:
+ENDM
+
+opcion5 MACRO ; macro para la función 5
+    LOCAL GUNO, GDOS, GTRES, GNOOP, GMENU, SALIDA 
+    clearPantalla
+    GMENU:
+        printLinea ln, 0d
+        printLinea graph, 10d
+        printLinea ln, 0d
+        printLinea graph2, 10d
+        printLinea ln, 0d
+        printLinea graph3, 10d
+        printLinea ln, 0d
+        printLinea graph4, 10d
+        printLinea ln, 0d
+        printLinea graph5, 10d
+        printLinea ln, 0d
+        getChar
+        cmp al, '1' ; grafica 1
+        je GUNO
+        cmp al, '2' ; grafica 2
+        je GDOS
+        cmp al, '3' ; grafica 3
+        je GTRES
+        cmp al, '4' ; grafica 4
+        je SALIDA
+        jne GNOOP
+
+    GUNO: ; nos vamos a la opcion uno
+        mov multiplicador, 1 
+        modoGrafico multiplicador
+        jmp GMENU
+    GDOS: ; nos vamos a la opcion dos
+        mov multiplicador, 2
+        modoGrafico multiplicador
+        jmp GMENU
+    GTRES: ; nos vamos a la opcion tres
+        mov multiplicador, 3
+        modoGrafico multiplicador
+        jmp GMENU
+    SALIDA: ; nos vamos a la opcion cuatro (salida)
+        clearPantalla
+        jmp MENU
+    GNOOP:
+        clearPantalla
+        printLinea ln, 0d
+        printLinea opErr, 3d
+        jmp MENU ; loop para regresar a MENU
+ENDM
+
 getParams MACRO ; parámetros para realizar los métodos numéricos
     LOCAL LERROR, SALIDA
     mov ax, @data
@@ -447,6 +687,14 @@ getParams MACRO ; parámetros para realizar los métodos numéricos
     mov al, limSuperior
     cmp al, limInferior
     jl LERROR
+    ; negamos el exponente 
+    mov gradTolerancia, al 
+    mov multiplicador, 1
+    potenciaM multiplicador, gradTolerancia
+    mov al, coefTolerancia
+    mov bl, potencia 
+    mul bl 
+    mov getError, al
     jmp SALIDA
 
     LERROR:
@@ -498,60 +746,123 @@ dfxn MACRO exp, xn ; macro para calcular la funcion f'(x)
     mov valDfn, al
 ENDM
 
-metodoNewton MACRO 
-    ; obtenemos f(xn)
-    ; aquí efectuamos la op de C5x^5
-    mov multiplicador, 4
-    fxn multiplicador, x5
-    ; aquí efectuamos la op de C4x^4
-    mov multiplicador, 3
-    fxn multiplicador, x4
-    ; aquí efectuamos la op de C3x^3
-    mov multiplicador, 2
-    fxn multiplicador, x3
-    ; aquí efectuamos la op de C2x^2
-    mov multiplicador, 1
-    fxn multiplicador, x2
-    ; aquí efectuamos la op de C1x^1
-    mov multiplicador, 0
-    fxn multiplicador, x1
-    ; aquí ya solo sumamos el termino independiente
-    mov al, valFn
-    add al, x0
-    mov valFn, al 
-    ; obtenemos f'(xn)
-    ; aquí efectuamos la op de C4x^4
-    mov multiplicador, 3
-    dfxn multiplicador, dx4
-    ; aquí efectuamos la op de C3x^3
-    mov multiplicador, 2
-    dfxn multiplicador, dx3
-    ; aquí efectuamos la op de C2x^2
-    mov multiplicador, 1
-    dfxn multiplicador, dx2
-    ; aquí efectuamos la op de C1x^1
-    mov multiplicador, 0
-    dfxn multiplicador, dx1
-    ; aquí ya solo sumamos el termino independiente
-    mov al, valDfn
-    add al, dx0
-    mov valDfn, al 
-
-    getCoeficiente valFn, menos
+printMetodo MACRO ; macro para los métodos numéricos por cada iteracion
+    ; ITERACION NO: 
     printLinea ln, 0d
-    getCoeficiente valDfn, menos
+    printLinea msgIteracion, 10d
+    getCoeficiente iteracion, menos
+    ; VALOR INICIAL Xn:
+    printLinea ln, 0d
+    printLinea msgValInicial, 10d
+    getCoeficiente limInferior, menos
+    ; ERROR
+    printLinea ln, 0d
+    printLinea msgErrorT, 10d
+    getCoeficiente errorIt, menos
+    ; CERO ACTUAL
+    printLinea ln, 0d
+    printLinea msgCero, 10d
+    getCoeficiente cero, menos
+    ; SEPARACION: 
+    printLinea ln, 0d
+    printLinea apartado, 10d
+ENDM
+
+metodoNewton MACRO 
+    LOCAL CICLO, VERIFICACION, SALIDA
+
+    CICLO:  
+        ; obtenemos f(xn)
+        ; llevamos la cuenta de las iteracion
+        mov al, iteracion 
+        add al, 1
+        mov iteracion, al
+        ; aquí efectuamos la op de C5x^5
+        mov multiplicador, 4
+        fxn multiplicador, x5
+        ; aquí efectuamos la op de C4x^4
+        mov multiplicador, 3
+        fxn multiplicador, x4
+        ; aquí efectuamos la op de C3x^3
+        mov multiplicador, 2
+        fxn multiplicador, x3
+        ; aquí efectuamos la op de C2x^2
+        mov multiplicador, 1
+        fxn multiplicador, x2
+        ; aquí efectuamos la op de C1x^1
+        mov multiplicador, 0
+        fxn multiplicador, x1
+        ; aquí ya solo sumamos el termino independiente
+        mov al, valFn
+        add al, x0
+        mov valFn, al 
+        ; obtenemos f'(xn)
+        ; aquí efectuamos la op de C4x^4
+        mov multiplicador, 3
+        dfxn multiplicador, dx4
+        ; aquí efectuamos la op de C3x^3
+        mov multiplicador, 2
+        dfxn multiplicador, dx3
+        ; aquí efectuamos la op de C2x^2
+        mov multiplicador, 1
+        dfxn multiplicador, dx2
+        ; aquí efectuamos la op de C1x^1
+        mov multiplicador, 0
+        dfxn multiplicador, dx1
+        ; aquí ya solo sumamos el termino independiente
+        mov al, valDfn
+        add al, dx0
+        mov valDfn, al 
+        ; ahora tenemos que dividir f(x)/f'(x)
+        xor ah, ah
+        mov bl, valDfn
+        mov al, valFn
+        idiv bl
+        mov divAux, al
+        ; ahora lo restamos x - f(x)/f'(x)
+        mov al, cero 
+        sub al, divAux
+        mov cero, al 
+        ; ahora calculamos el error
+        mov bl, cero 
+        sub bl, limInferior
+        mov errorIt, al 
+        ; ahora imprimimos la iteracion actual
+        printMetodo
+        ; capturamos un caracter solamente para que pase a la siguiente iteracion
+        mov ah, 01h
+        int 21h
+        ; ponemos el nuevo valor al limite inferior
+        mov al, cero
+        mov limInferior, al
+        ; ahora comparamos el lim superior para ver si volvemos a iterar o ya no
+        mov al, limInferior
+        cmp al, limSuperior
+        je SALIDA
+        jg SALIDA
+        ; ahora comparamos el error para ver si volvemos a iterar o ya no
+        mov al, iteracion
+        cmp al, iteracionMax
+        je SALIDA
+        jg SALIDA 
+        jmp CICLO
+
+    SALIDA:
 ENDM
 
 opcion6 MACRO ; macro para la función 6
     mov valFn, 0
     mov valDfn, 0
     mov errorIt, 0
+    mov iteracion, 0
+    mov cero, 0
     clearPantalla
     printLinea ln, 0d
     printLinea op6Intro, 10d
     printLinea ln, 0d
     ; obtenemos los parámetros
     getParams
+    clearPantalla
     ; ahora procedemos con el método
     metodoNewton
     jmp MENU
@@ -564,8 +875,8 @@ ENDM
     ln      db 0ah, '$' ;salto de línea
     opErr   db "No se ha reconocido la opcion ingresada, intente de nuevo.", "$"
     ; menú principal
-    intro    db "================ CALCULADORA ================","$"
-    intro2   db "Gerson Ruben Quiroa del Cid  - Carnet: 202000166 ", "$"
+    intro   db "================ CALCULADORA ================","$"
+    intro2  db "Gerson Ruben Quiroa del Cid  - Carnet: 202000166 ", "$"
     op1     db "     (1) Ingresar funcion", "$"
     op2     db "     (2) Imprimir la funcion almacenada", "$"
     op3     db "     (3) Imprimir derivada de la funcion", "$"
@@ -574,13 +885,14 @@ ENDM
     op6     db "     (6) Ceros por metodo de Newton", "$"
     op7     db "     (7) Ceros por metodo de Steffensen", "$"
     op8     db "     (8) Salir de la aplicacion", "$"
-    intro3   db "Ingrese el numero de la opcion que desea.", "$"
-    intro4   db "    >", "$"
+    intro3  db "Ingrese el numero de la opcion que desea.", "$"
+    intro4  db "    >", "$"
     
     graph   db "================ GRAFICAR FUNCION ================","$"
-            db "     (5.1) Funcion original", 10,13,"$"
-            db "     (5.2) Funcion derivada", 10,13,"$"
-            db "     (5.3) Funcion integral", 10,13,"$"
+    graph2  db "     (5.1) Funcion original", "$"
+    graph3  db "     (5.2) Funcion derivada", "$"
+    graph4  db "     (5.3) Funcion integral", "$"
+    graph5  db "     (5.4) Salir al menu principal", "$"
 
     op1Intro    db "Ingrese la funcion que desee guardar por coeficintes. Ingresar solo numero enteros", "$"
     op1x6       db "X^6 ", "$"
@@ -613,8 +925,14 @@ ENDM
     msgLimSuperior      db "Ingrese el limite superior", "$"
     msgLimInferior      db "Ingrese el limite inferior", "$"
     limError            db "ERROR. El limite inferior deberia de ser mas pequenio que el limite superior.", "$"
-    op6Intro    db "================ Ceros por metodo de Newton ================", "$"
-    op7Intro    db "================ Ceros por metodo de Steffensen ================", "$"
+    op6Intro        db "================ Ceros por metodo de Newton ================", "$"
+    op7Intro        db "================ Ceros por metodo de Steffensen ================", "$"
+    apartado        db "================================================================", "$"
+    msgIteracion    db "ITERACION no.: ", "$"
+    msgValInicial   db "VALOR INICIAL Xn: ", "$"
+    msgErrorT       db "ERROR: ", "$"
+    msgCero         db "Xn+1: ", "$"
+    
 
     outro       db "Presione la tecla r para regresar.", "$"
 
@@ -649,14 +967,23 @@ ENDM
     iteracionMax    db 0 ; iteraciones máxima
     coefTolerancia  db 0 ; Coeficiente -> 5x10^-3
     gradTolerancia  db 0 ; 5x10^-3 <- grado
+    getError        db 0
     limSuperior     db 0 ; límite superior
     limInferior     db 0 ; límite inferior
-    cero            dw 0 ; solución por los métodos 
-    divAux          dw 0 
+    cero            db 0 ; solución por los métodos 
+    divAux          db 0 
     potencia        db 0
     valFn           db 0 ; valor de la funcion normal
     valDfn          db 0 ; valor de la función derivada
-    errorIt         dw 0 ; error de la iteracion
+    errorIt         db 0 ; error de la iteracion
+    iteracion       db 0 ; número de la iteracion
+    ; MODO GRAFICO
+    x     dw (320) ; pos en x 
+    y     dw (240) ; pos en y
+    xmax  dw (0) ; 640 max anchura
+    ymax  dw (0) ; 480 max alto
+    color db (14) ; color amarillo
+    vid   db ?	; Salvamos el modo de video :) 
 
 .code ; segmento de código
     main PROC ; proceso main
@@ -695,10 +1022,7 @@ ENDM
         opcion4
     
     CINCO: ; nos vamos a la opcion cinco
-        clearPantalla
-        printLinea ln, 0d
-        printLinea enProceso, 10d
-        jmp MENU
+        opcion5
 
     SEIS: ; nos vamos a la opcion seis
         opcion6

@@ -429,33 +429,95 @@ opcion4 MACRO ; macro para la función 4
     jmp MENU
 ENDM
 
-quinta MACRO const 
+quintaM MACRO const 
+    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
     ; pintar un pixel (prueba)
-    mov cx, 290 ; x
-    mov dx, 0 ; y
+    mov cx, 260 ; x
+    mov dx, 480 ; y
+    mov stopG, 252 ; stop para saber cuando parar
+    mov ax, stopG
+    add ax, const ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov stopG, ax
+    mov aux, 470
+    mov ax, aux
+    add ax, const ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov aux, ax
+
     CICLO1:
         mov ah, 0ch ; ppinta un pixel
         mov al, color ; color
         mov bh, 0h ; pagina 0
-        int 10h
-        inc cx 
-        inc ymax, 
-        inc dx 
-        inc xmax 
-        cmp xmax, 640
-        jne HORIZONTAL
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+        jmp PASO1
 
-    mov dx, 0
-    VERTICAL: 
+    CICLO2: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+
+    PASO1:
+        mov aux, cx 
+        mov ax, aux 
+        add ax, 3
+        mov aux, ax
+        mov stopG, 350
+
+    CICLO3:
         mov ah, 0ch ; ppinta un pixel
         mov al, color ; color
         mov bh, 0h ; pagina 0
-        mov cx, x ; renglon y
-        int 10h
-        inc dx 
-        inc ymax 
-        cmp ymax, 480
-        jne VERTICAL
+        int 10h ; aquí pintamos
+        inc cx ; incrementamos en x
+        cmp cx, aux ; comparamos para subir en y
+        je CICLO4 
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+        jmp PASO2
+
+    CICLO4: 
+        dec dx ; incrementamos en y
+        mov ax, aux 
+        add ax, 3 ; guardamos en aux, para saber cuando subir otra vez en y
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+
+    PASO2:
+        mov aux, dx 
+        mov ax, aux 
+        sub ax, 10
+        mov aux, ax
+        mov stopG, 0
+
+    CICLO5:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO6 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+        jmp SALIDA
+
+    CICLO6: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+    
+    SALIDA:
 ENDM 
 
 graficando MACRO var ; aquí graficamos coeficiente por coeficiente 
@@ -464,7 +526,7 @@ graficando MACRO var ; aquí graficamos coeficiente por coeficiente
     mov xmax, 0 
     mov ymax, 0
     ; cambiamos color 
-    ; mov color, 20
+    mov color, 5
     ; vemos de que grado es
     mov al, var 
     cmp al, 5
@@ -481,27 +543,27 @@ graficando MACRO var ; aquí graficamos coeficiente por coeficiente
     je SIN 
 
     QUINTA: 
-        quinta x0
+        quintaM x0
         jmp SALIDA
 
     CUARTA: 
-        cuarta x0
+        ;cuarta x0
         jmp SALIDA
 
     TERCERA: 
-        tercera x0
+        ;tercera x0
         jmp SALIDA
     
     SEGUNDA: 
-        segunda x0
+        ;segunda x0
         jmp SALIDA
 
     PRIMERA: 
-        primera x0
+        ;primera x0
         jmp SALIDA
     
     SIN:
-        sinCero x0
+        ;sinCero x0
         jmp SALIDA
 
     SALIDA:
@@ -983,6 +1045,8 @@ ENDM
     xmax  dw (0) ; 640 max anchura
     ymax  dw (0) ; 480 max alto
     color db (14) ; color amarillo
+    aux   dw (0) 
+    stopG dw (0) ; para saber cuando parar en cada ciclo
     vid   db ?	; Salvamos el modo de video :) 
 
 .code ; segmento de código

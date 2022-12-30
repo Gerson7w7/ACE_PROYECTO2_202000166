@@ -10,12 +10,10 @@ printLinea MACRO txt, color ; macro para poder imprimir cadenas de texto 'quemad
     lea dx, txt
     int 21h
 ENDM
-
 clearPantalla MACRO
     mov ax, 03h
     int 10h
 ENDM
-
 printMenu MACRO ; macro para imprimir el menú principal
     printLinea ln, 0d ; imprimimos un salto de línea por cada linea
     printLinea ln, 0d
@@ -45,12 +43,10 @@ printMenu MACRO ; macro para imprimir el menú principal
     printLinea ln, 0d
     printLinea intro4, 10d 
 ENDM
-
 getChar MACRO ;macro para leer un char desde el teclado
     mov ah, 01h
     int 21h
 ENDM
-
 saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     LOCAL LNEGATIVO, LCAPTURAR, LPOSITIVO, RESTA, SALIR, LERROR
     mov ax, @data
@@ -68,7 +64,6 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     cmp al, '+'
     je LPOSITIVO
     jmp LCAPTURAR
-
     LPOSITIVO:
         ; capturamos el primer dígito del número (la unidad)
         mov ah, 01h
@@ -429,19 +424,112 @@ opcion4 MACRO ; macro para la función 4
     jmp MENU
 ENDM
 
+sextaM MACRO const 
+    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 260 ; x
+    mov dx, 0 ; y
+    mov stopG, 257 ; stop para saber cuando parar
+    mov ax, stopG
+    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov stopG, ax
+    mov aux, 10
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+        jmp PASO1
+
+    CICLO2: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        add ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+
+    PASO1:
+        mov aux, cx 
+        mov ax, aux 
+        add ax, 3
+        mov aux, ax
+        mov stopG, 330
+
+    CICLO3:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamos en x
+        cmp cx, aux ; comparamos para subir en y
+        je CICLO4 
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+        jmp PASO2
+
+    CICLO4: 
+        dec dx ; incrementamos en y
+        mov ax, aux 
+        add ax, 2 ; guardamos en aux, para saber cuando subir otra vez en y
+        mov aux, ax
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+
+    PASO2:
+        mov aux, dx 
+        mov ax, aux 
+        sub ax, 10
+        mov aux, ax
+        mov stopG, 0
+
+    CICLO5:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO6 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+        jmp SALIDA
+
+    CICLO6: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+    
+    SALIDA:
+ENDM 
+
 quintaM MACRO const 
     LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
     ; pintar un pixel (prueba)
     mov cx, 260 ; x
     mov dx, 480 ; y
     mov stopG, 252 ; stop para saber cuando parar
     mov ax, stopG
-    add ax, const ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
     mov stopG, ax
     mov aux, 470
-    mov ax, aux
-    add ax, const ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
-    mov aux, ax
 
     CICLO1:
         mov ah, 0ch ; ppinta un pixel
@@ -487,7 +575,7 @@ quintaM MACRO const
         mov ax, aux 
         add ax, 3 ; guardamos en aux, para saber cuando subir otra vez en y
         mov aux, ax
-        cmp dx, stopG ; comparamos para salir del cilo
+        cmp cx, stopG ; comparamos para salir del cilo
         jne CICLO3
 
     PASO2:
@@ -520,8 +608,331 @@ quintaM MACRO const
     SALIDA:
 ENDM 
 
-graficando MACRO var ; aquí graficamos coeficiente por coeficiente 
-    LOCAL QUINTA, CUARTA, TERCERA, SEGUNDA, PRIMERA, SIN, SALIDA
+cuartaM MACRO const 
+    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 260 ; x
+    mov dx, 0 ; y
+    mov stopG, 257 ; stop para saber cuando parar
+    mov ax, stopG
+    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov stopG, ax
+    mov aux, 10
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+        jmp PASO1
+
+    CICLO2: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        add ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+
+    PASO1:
+        mov aux, cx 
+        mov ax, aux 
+        add ax, 3
+        mov aux, ax
+        mov stopG, 330
+
+    CICLO3:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamos en x
+        cmp cx, aux ; comparamos para subir en y
+        je CICLO4 
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+        jmp PASO2
+
+    CICLO4: 
+        dec dx ; incrementamos en y
+        mov ax, aux 
+        add ax, 2 ; guardamos en aux, para saber cuando subir otra vez en y
+        mov aux, ax
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+
+    PASO2:
+        mov aux, dx 
+        mov ax, aux 
+        sub ax, 10
+        mov aux, ax
+        mov stopG, 0
+
+    CICLO5:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO6 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+        jmp SALIDA
+
+    CICLO6: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+    
+    SALIDA:
+ENDM 
+
+terceraM MACRO const 
+    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 290 ; x
+    mov dx, 480 ; y
+    mov stopG, 248 ; stop para saber cuando parar
+    mov ax, stopG
+    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov stopG, ax
+    mov aux, 470
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+        jmp PASO1
+
+    CICLO2: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+
+    PASO1:
+        mov aux, cx 
+        mov ax, aux 
+        add ax, 3
+        mov aux, ax
+        mov stopG, 327
+
+    CICLO3:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamos en x
+        dec dx ; incrementamos en y
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+        jmp PASO2
+
+    PASO2:
+        mov aux, dx 
+        mov ax, aux 
+        sub ax, 10
+        mov aux, ax
+        mov stopG, 0
+
+    CICLO5:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO6 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+        jmp SALIDA
+
+    CICLO6: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+    
+    SALIDA:
+ENDM
+
+segundaM MACRO const 
+    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 290 ; x
+    mov dx, 0 ; y
+    mov stopG, 240 ; stop para saber cuando parar
+    mov ax, stopG
+    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov stopG, ax
+    mov aux, 10
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+        jmp PASO1
+
+    CICLO2: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        add ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+
+    PASO1:
+        mov aux, cx 
+        mov ax, aux 
+        add ax, 3
+        mov aux, ax
+        mov stopG, 325
+
+    CICLO3:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamos en x
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO3
+        jmp PASO2
+
+    PASO2:
+        mov aux, dx 
+        mov ax, aux 
+        sub ax, 10
+        mov aux, ax
+        mov stopG, 0
+
+    CICLO5:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        dec dx ; incrementamo en y el siguiente pixel
+        cmp dx, aux ; comparamos para subir en x
+        je CICLO6 
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+        jmp SALIDA
+
+    CICLO6: 
+        inc cx ; incrementamos en x
+        mov ax, aux 
+        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp dx, stopG ; comparamos para salir del cilo
+        jne CICLO5
+    
+    SALIDA:
+ENDM 
+
+primeraM MACRO const 
+    LOCAL CICLO1, CICLO2, VERIFICAR, SALIDA
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 70 ; x
+    mov dx, 480 ; y
+    mov stopG, 640 ; stop para saber cuando parar
+    sub cx, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
+    mov aux, 80
+    mov ax, aux 
+    sub ax, constAux
+    mov aux, ax
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamo en y el siguiente pixel
+        cmp cx, aux ; comparamos para subir en x
+        je CICLO2 
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne VERIFICAR
+        jmp SALIDA
+
+    VERIFICAR:
+        cmp dx, 0 ; comparamos para salir del cilo
+        jne CICLO1
+        jmp SALIDA
+
+    CICLO2: 
+        dec dx ; incrementamos en x
+        mov ax, aux 
+        add ax, 1 ; guardamos en aux, para saber cuando subir otra vez en x
+        mov aux, ax
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+    
+    SALIDA:
+ENDM 
+
+sinCeroM MACRO const 
+    LOCAL CICLO1
+    ; pasamos const a ax
+    mov al, const
+    cbw
+    mov constAux, ax
+    ; pintar un pixel (prueba)
+    mov cx, 0 ; x
+    mov dx, 240 ; y
+    sub dx, constAux ; ajuste para saber si está arriba o abajo del origen 
+    mov stopG, 640 ; stop para saber cuando parar
+
+    CICLO1:
+        mov ah, 0ch ; ppinta un pixel
+        mov al, color ; color
+        mov bh, 0h ; pagina 0
+        int 10h ; aquí pintamos
+        inc cx ; incrementamo en y el siguiente pixel
+        cmp cx, stopG ; comparamos para salir del cilo
+        jne CICLO1
+ENDM 
+
+graficando MACRO var, nx0 ; aquí graficamos coeficiente por coeficiente 
+    LOCAL SEXTA, QUINTA, CUARTA, TERCERA, SEGUNDA, PRIMERA, SIN, SALIDA
     ; RESETEAMOS CONTADORES 
     mov xmax, 0 
     mov ymax, 0
@@ -529,6 +940,8 @@ graficando MACRO var ; aquí graficamos coeficiente por coeficiente
     mov color, 5
     ; vemos de que grado es
     mov al, var 
+    cmp al, 6
+    je SEXTA
     cmp al, 5
     je QUINTA
     cmp al, 4
@@ -542,28 +955,32 @@ graficando MACRO var ; aquí graficamos coeficiente por coeficiente
     cmp al, 0
     je SIN 
 
+    SEXTA: 
+        sextaM nx0
+        jmp SALIDA
+
     QUINTA: 
-        quintaM x0
+        quintaM nx0
         jmp SALIDA
 
     CUARTA: 
-        ;cuarta x0
+        cuartaM nx0
         jmp SALIDA
 
     TERCERA: 
-        ;tercera x0
+        terceraM nx0
         jmp SALIDA
     
     SEGUNDA: 
-        ;segunda x0
+        segundaM nx0
         jmp SALIDA
 
     PRIMERA: 
-        ;primera x0
+        primeraM nx0
         jmp SALIDA
     
     SIN:
-        ;sinCero x0
+        sinCeroM nx0
         jmp SALIDA
 
     SALIDA:
@@ -571,7 +988,7 @@ graficando MACRO var ; aquí graficamos coeficiente por coeficiente
 ENDM
 
 opGraph1 MACRO ; aqui graficamos la funcion normal
-    LOCAL GSEIS, GCINCO, GCUATRO, GTRES, GDOS, GUNO, GCERO, SALIDA
+    LOCAL GCINCO, GCUATRO, GTRES, GDOS, GUNO, GCERO, SALIDA
     mov al, x5
     cmp al, 0
     jne GCINCO
@@ -587,43 +1004,120 @@ opGraph1 MACRO ; aqui graficamos la funcion normal
     mov al, x1
     cmp al, 0
     jne GUNO
-    mov al, x0
-    cmp al, 0
-    jne GCERO
+    jmp GCERO
 
     GCINCO:
-        graficando x5
+        graficando 5, x0
         jmp SALIDA
 
     GCUATRO:
-        graficando x4
+        graficando 4, x0
         jmp SALIDA
 
     GTRES:
-        graficando x3
+        graficando 3, x0
         jmp SALIDA
 
     GDOS:
-        graficando x2
+        graficando 2, x0
         jmp SALIDA
 
     GUNO:
-        graficando x1
+        graficando 1, x0
         jmp SALIDA
 
     GCERO:
-        graficando x0
+        graficando 0, x0
         jmp SALIDA
 
     SALIDA:
 ENDM
 
 opGraph2 MACRO
-    modoGrafico
+    LOCAL GCUATRO, GTRES, GDOS, GUNO, GCERO, SALIDA
+    mov al, dx4
+    cmp al, 0
+    jne GCUATRO
+    mov al, dx3
+    cmp al, 0
+    jne GTRES
+    mov al, dx2
+    cmp al, 0
+    jne GDOS
+    mov al, dx1
+    cmp al, 0
+    jne GUNO
+    jmp GCERO
+
+    GCUATRO:
+        graficando 4, dx0
+        jmp SALIDA
+
+    GTRES:
+        graficando 3, dx0
+        jmp SALIDA
+
+    GDOS:
+        graficando 2, dx0
+        jmp SALIDA
+
+    GUNO:
+        graficando 1, dx0
+        jmp SALIDA
+
+    GCERO:
+        graficando 0, dx0
+        jmp SALIDA
+
+    SALIDA:
 ENDM
 
 opGraph3 MACRO
-    modoGrafico
+    LOCAL GSEIS, GCINCO, GCUATRO, GTRES, GDOS, GUNO, SALIDA
+    mov al, sx6
+    cmp al, 0
+    jne GSEIS
+    mov al, sx5
+    cmp al, 0
+    jne GCINCO
+    mov al, sx4
+    cmp al, 0
+    jne GCUATRO
+    mov al, sx3
+    cmp al, 0
+    jne GTRES
+    mov al, sx2
+    cmp al, 0
+    jne GDOS
+    mov al, sx1
+    cmp al, 0
+    jne GUNO
+
+    GSEIS:
+        graficando 6, 0
+        jmp SALIDA
+
+    GCINCO:
+        graficando 5, 0
+        jmp SALIDA
+
+    GCUATRO:
+        graficando 4, 0
+        jmp SALIDA
+
+    GTRES:
+        graficando 3, 0
+        jmp SALIDA
+
+    GDOS:
+        graficando 2, 0
+        jmp SALIDA
+
+    GUNO:
+        graficando 1, 0
+        jmp SALIDA
+
+    SALIDA:
 ENDM
 
 modoGrafico MACRO var
@@ -632,6 +1126,7 @@ modoGrafico MACRO var
     ; RESETEAMOS CONTADORES 
     mov xmax, 0 
     mov ymax, 0
+    mov color, 14
     ; cambiamos a modo gráfico
     mov ah, 00
     mov al, 12h
@@ -675,9 +1170,11 @@ modoGrafico MACRO var
         jmp SALIDA
 
     GDOS: 
+        opGraph2
         jmp SALIDA
 
-    GTRES: 
+    GTRES:
+        opGraph3 
         jmp SALIDA
 
     SALIDA:
@@ -729,205 +1226,6 @@ opcion5 MACRO ; macro para la función 5
         printLinea ln, 0d
         printLinea opErr, 3d
         jmp MENU ; loop para regresar a MENU
-ENDM
-
-getParams MACRO ; parámetros para realizar los métodos numéricos
-    LOCAL LERROR, SALIDA
-    mov ax, @data
-    mov ds, ax
-    ; primero pediremos el númerom máximo de iteraciones
-    saveCoeficiente msgIteracionMax, iteracionMax
-    ; primero pediremos el coeficiente de tolerancia
-    saveCoeficiente msgCoefTolerancia, coefTolerancia
-    ; primero pediremos el grado de tolerancia
-    saveCoeficiente msgGradTolerancia, gradTolerancia
-    ; primero pediremos el límite superior
-    saveCoeficiente msgLimSuperior, limSuperior
-    ; primero pediremos el límite inferior
-    saveCoeficiente msgLimInferior, limInferior
-    ; ahora verificamos que el límite superior sea mayor al límite inferior
-    mov al, limSuperior
-    cmp al, limInferior
-    jl LERROR
-    ; negamos el exponente 
-    mov gradTolerancia, al 
-    mov multiplicador, 1
-    potenciaM multiplicador, gradTolerancia
-    mov al, coefTolerancia
-    mov bl, potencia 
-    mul bl 
-    mov getError, al
-    jmp SALIDA
-
-    LERROR:
-        clearPantalla
-        printLinea limError, 5d
-        jmp SALIDA
-
-    SALIDA:
-ENDM
-
-potenciaM MACRO base, exp ; macro para realizar las potencias de las funciones
-    LOCAL CICLO
-    mov al, base 
-    mov potencia, al 
-    ; creamos un ciclo para representar la potencia
-    CICLO:
-        ; aquí realizamos la multiplicacion y la guardamos en la variable potencia
-        mov al, potencia
-        mov bl, base
-        mul bl
-        mov potencia, al
-        ; restamos en 1 al exp 
-        mov al, exp 
-        sub al, 1 
-        mov exp, al
-        ; si llega a 0 el exponente, salimos del loop
-        mov al, exp 
-        cmp al, 0
-        jg CICLO
-ENDM
-
-fxn MACRO exp, xn ; macro para calcular la funcion f(x)
-    ; Cnx^n
-    potenciaM limInferior, exp ; aquí caculamos x^n
-    mov al, xn 
-    mov bl, potencia 
-    imul bl ; aquí multiplicamos el coeficiente por el x correspondient
-    add al, valFn
-    mov valFn, al
-ENDM
-
-dfxn MACRO exp, xn ; macro para calcular la funcion f'(x)
-    ; Cnx^n
-    potenciaM limInferior, exp ; aquí caculamos x^n
-    mov al, xn 
-    mov bl, potencia 
-    imul bl ; aquí multiplicamos el coeficiente por el x correspondient
-    add al, valDfn
-    mov valDfn, al
-ENDM
-
-printMetodo MACRO ; macro para los métodos numéricos por cada iteracion
-    ; ITERACION NO: 
-    printLinea ln, 0d
-    printLinea msgIteracion, 10d
-    getCoeficiente iteracion, menos
-    ; VALOR INICIAL Xn:
-    printLinea ln, 0d
-    printLinea msgValInicial, 10d
-    getCoeficiente limInferior, menos
-    ; ERROR
-    printLinea ln, 0d
-    printLinea msgErrorT, 10d
-    getCoeficiente errorIt, menos
-    ; CERO ACTUAL
-    printLinea ln, 0d
-    printLinea msgCero, 10d
-    getCoeficiente cero, menos
-    ; SEPARACION: 
-    printLinea ln, 0d
-    printLinea apartado, 10d
-ENDM
-
-metodoNewton MACRO 
-    LOCAL CICLO, VERIFICACION, SALIDA
-
-    CICLO:  
-        ; obtenemos f(xn)
-        ; llevamos la cuenta de las iteracion
-        mov al, iteracion 
-        add al, 1
-        mov iteracion, al
-        ; aquí efectuamos la op de C5x^5
-        mov multiplicador, 4
-        fxn multiplicador, x5
-        ; aquí efectuamos la op de C4x^4
-        mov multiplicador, 3
-        fxn multiplicador, x4
-        ; aquí efectuamos la op de C3x^3
-        mov multiplicador, 2
-        fxn multiplicador, x3
-        ; aquí efectuamos la op de C2x^2
-        mov multiplicador, 1
-        fxn multiplicador, x2
-        ; aquí efectuamos la op de C1x^1
-        mov multiplicador, 0
-        fxn multiplicador, x1
-        ; aquí ya solo sumamos el termino independiente
-        mov al, valFn
-        add al, x0
-        mov valFn, al 
-        ; obtenemos f'(xn)
-        ; aquí efectuamos la op de C4x^4
-        mov multiplicador, 3
-        dfxn multiplicador, dx4
-        ; aquí efectuamos la op de C3x^3
-        mov multiplicador, 2
-        dfxn multiplicador, dx3
-        ; aquí efectuamos la op de C2x^2
-        mov multiplicador, 1
-        dfxn multiplicador, dx2
-        ; aquí efectuamos la op de C1x^1
-        mov multiplicador, 0
-        dfxn multiplicador, dx1
-        ; aquí ya solo sumamos el termino independiente
-        mov al, valDfn
-        add al, dx0
-        mov valDfn, al 
-        ; ahora tenemos que dividir f(x)/f'(x)
-        xor ah, ah
-        mov bl, valDfn
-        mov al, valFn
-        idiv bl
-        mov divAux, al
-        ; ahora lo restamos x - f(x)/f'(x)
-        mov al, cero 
-        sub al, divAux
-        mov cero, al 
-        ; ahora calculamos el error
-        mov bl, cero 
-        sub bl, limInferior
-        mov errorIt, al 
-        ; ahora imprimimos la iteracion actual
-        printMetodo
-        ; capturamos un caracter solamente para que pase a la siguiente iteracion
-        mov ah, 01h
-        int 21h
-        ; ponemos el nuevo valor al limite inferior
-        mov al, cero
-        mov limInferior, al
-        ; ahora comparamos el lim superior para ver si volvemos a iterar o ya no
-        mov al, limInferior
-        cmp al, limSuperior
-        je SALIDA
-        jg SALIDA
-        ; ahora comparamos el error para ver si volvemos a iterar o ya no
-        mov al, iteracion
-        cmp al, iteracionMax
-        je SALIDA
-        jg SALIDA 
-        jmp CICLO
-
-    SALIDA:
-ENDM
-
-opcion6 MACRO ; macro para la función 6
-    mov valFn, 0
-    mov valDfn, 0
-    mov errorIt, 0
-    mov iteracion, 0
-    mov cero, 0
-    clearPantalla
-    printLinea ln, 0d
-    printLinea op6Intro, 10d
-    printLinea ln, 0d
-    ; obtenemos los parámetros
-    getParams
-    clearPantalla
-    ; ahora procedemos con el método
-    metodoNewton
-    jmp MENU
 ENDM
 
 .model small 
@@ -1040,14 +1338,15 @@ ENDM
     errorIt         db 0 ; error de la iteracion
     iteracion       db 0 ; número de la iteracion
     ; MODO GRAFICO
-    x     dw (320) ; pos en x 
-    y     dw (240) ; pos en y
-    xmax  dw (0) ; 640 max anchura
-    ymax  dw (0) ; 480 max alto
-    color db (14) ; color amarillo
-    aux   dw (0) 
-    stopG dw (0) ; para saber cuando parar en cada ciclo
-    vid   db ?	; Salvamos el modo de video :) 
+    x        dw (320) ; pos en x 
+    y        dw (240) ; pos en y
+    xmax     dw (0) ; 640 max anchura
+    ymax     dw (0) ; 480 max alto
+    color    db (14) ; color amarillo
+    aux      dw (0) 
+    constAux dw (0)
+    stopG    dw (0) ; para saber cuando parar en cada ciclo
+    vid      db ?	; Salvamos el modo de video :) 
 
 .code ; segmento de código
     main PROC ; proceso main
@@ -1089,7 +1388,7 @@ ENDM
         opcion5
 
     SEIS: ; nos vamos a la opcion seis
-        opcion6
+        ;opcion6
 
     SIETE: ; nos vamos a la opcion siete
         clearPantalla

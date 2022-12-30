@@ -10,10 +10,12 @@ printLinea MACRO txt, color ; macro para poder imprimir cadenas de texto 'quemad
     lea dx, txt
     int 21h
 ENDM
+
 clearPantalla MACRO
     mov ax, 03h
     int 10h
 ENDM
+
 printMenu MACRO ; macro para imprimir el menú principal
     printLinea ln, 0d ; imprimimos un salto de línea por cada linea
     printLinea ln, 0d
@@ -43,10 +45,12 @@ printMenu MACRO ; macro para imprimir el menú principal
     printLinea ln, 0d
     printLinea intro4, 10d 
 ENDM
+
 getChar MACRO ;macro para leer un char desde el teclado
     mov ah, 01h
     int 21h
 ENDM
+
 saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     LOCAL LNEGATIVO, LCAPTURAR, LPOSITIVO, RESTA, SALIR, LERROR
     mov ax, @data
@@ -64,6 +68,7 @@ saveCoeficiente MACRO xn, var ; aquí leeremos los coeficientes de max 2 digitos
     cmp al, '+'
     je LPOSITIVO
     jmp LCAPTURAR
+
     LPOSITIVO:
         ; capturamos el primer dígito del número (la unidad)
         mov ah, 01h
@@ -423,98 +428,6 @@ opcion4 MACRO ; macro para la función 4
     getIntegral x0, multiplicador, sx1 ; imprimimos el coeficiente de x1
     jmp MENU
 ENDM
-
-sextaM MACRO const 
-    LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
-    ; pasamos const a ax
-    mov al, const
-    cbw
-    mov constAux, ax
-    ; pintar un pixel (prueba)
-    mov cx, 260 ; x
-    mov dx, 0 ; y
-    mov stopG, 257 ; stop para saber cuando parar
-    mov ax, stopG
-    sub ax, constAux ; aquí hacemos el ajuste de la constante para saber si arriba o abajo del origen
-    mov stopG, ax
-    mov aux, 10
-
-    CICLO1:
-        mov ah, 0ch ; ppinta un pixel
-        mov al, color ; color
-        mov bh, 0h ; pagina 0
-        int 10h ; aquí pintamos
-        inc dx ; incrementamo en y el siguiente pixel
-        cmp dx, aux ; comparamos para subir en x
-        je CICLO2 
-        cmp dx, stopG ; comparamos para salir del cilo
-        jne CICLO1
-        jmp PASO1
-
-    CICLO2: 
-        inc cx ; incrementamos en x
-        mov ax, aux 
-        add ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
-        mov aux, ax
-        cmp dx, stopG ; comparamos para salir del cilo
-        jne CICLO1
-
-    PASO1:
-        mov aux, cx 
-        mov ax, aux 
-        add ax, 3
-        mov aux, ax
-        mov stopG, 330
-
-    CICLO3:
-        mov ah, 0ch ; ppinta un pixel
-        mov al, color ; color
-        mov bh, 0h ; pagina 0
-        int 10h ; aquí pintamos
-        inc cx ; incrementamos en x
-        cmp cx, aux ; comparamos para subir en y
-        je CICLO4 
-        cmp cx, stopG ; comparamos para salir del cilo
-        jne CICLO3
-        jmp PASO2
-
-    CICLO4: 
-        dec dx ; incrementamos en y
-        mov ax, aux 
-        add ax, 2 ; guardamos en aux, para saber cuando subir otra vez en y
-        mov aux, ax
-        cmp cx, stopG ; comparamos para salir del cilo
-        jne CICLO3
-
-    PASO2:
-        mov aux, dx 
-        mov ax, aux 
-        sub ax, 10
-        mov aux, ax
-        mov stopG, 0
-
-    CICLO5:
-        mov ah, 0ch ; ppinta un pixel
-        mov al, color ; color
-        mov bh, 0h ; pagina 0
-        int 10h ; aquí pintamos
-        dec dx ; incrementamo en y el siguiente pixel
-        cmp dx, aux ; comparamos para subir en x
-        je CICLO6 
-        cmp dx, stopG ; comparamos para salir del cilo
-        jne CICLO5
-        jmp SALIDA
-
-    CICLO6: 
-        inc cx ; incrementamos en x
-        mov ax, aux 
-        sub ax, 10 ; guardamos en aux, para saber cuando subir otra vez en x
-        mov aux, ax
-        cmp dx, stopG ; comparamos para salir del cilo
-        jne CICLO5
-    
-    SALIDA:
-ENDM 
 
 quintaM MACRO const 
     LOCAL CICLO1, CICLO2, PASO1, CICLO3, CICLO4, PASO2, CICLO5, CICLO6, SALIDA
@@ -932,7 +845,7 @@ sinCeroM MACRO const
 ENDM 
 
 graficando MACRO var, nx0 ; aquí graficamos coeficiente por coeficiente 
-    LOCAL SEXTA, QUINTA, CUARTA, TERCERA, SEGUNDA, PRIMERA, SIN, SALIDA
+    LOCAL QUINTA, CUARTA, TERCERA, SEGUNDA, PRIMERA, SIN, SALIDA
     ; RESETEAMOS CONTADORES 
     mov xmax, 0 
     mov ymax, 0
@@ -941,7 +854,8 @@ graficando MACRO var, nx0 ; aquí graficamos coeficiente por coeficiente
     ; vemos de que grado es
     mov al, var 
     cmp al, 6
-    je SEXTA
+    je CUARTA
+    mov al, var 
     cmp al, 5
     je QUINTA
     cmp al, 4
@@ -954,10 +868,6 @@ graficando MACRO var, nx0 ; aquí graficamos coeficiente por coeficiente
     je PRIMERA 
     cmp al, 0
     je SIN 
-
-    SEXTA: 
-        sextaM nx0
-        jmp SALIDA
 
     QUINTA: 
         quintaM nx0
